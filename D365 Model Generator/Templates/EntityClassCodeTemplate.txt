@@ -25,7 +25,15 @@ namespace [@DefaultNamespace]
 	/// </summary>
 	public class [@EntityCustomName]
 	{
+		/// <summary>
+		/// Unique entity name
+		/// </summary>
 		public const string EntityLogicalName = "[@Entity.LogicalName]";
+
+		/// <summary>
+		/// Unique entity code 
+		/// Warning : Be aware that etc is not the same between organizations for custom entities
+		/// </summary>
 		public const int EntityTypeCode = [@Entity.ObjectTypeCode.Value];
 
 		public static class Fields
