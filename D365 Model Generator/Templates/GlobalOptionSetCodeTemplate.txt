@@ -1,0 +1,13 @@
+			
+			#region [@OptionSet.DisplayName]
+			/// <summary>
+			/// [@OptionSet.Description]
+			/// Type : [@OptionSet.OptionSetType.Value]
+			/// </summary>
+			public const string [@OptionSet.SchemaName] = "[@OptionSet.LogicalName]";
+
+			public class [@OptionSet.SchemaName]Values
+			{
+				[@OptionSet.Values]
+			}
+			#endregion [@OptionSet.DisplayName]

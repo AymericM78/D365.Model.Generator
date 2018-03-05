@@ -1,0 +1,26 @@
+﻿// =====================================================================
+//  This file has been generated with a tool : DO NOT EDIT IT
+//
+//  THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+//  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+//  PARTICULAR PURPOSE.
+//
+//  Copyright (C) Microsoft Corporation.  All rights reserved.
+//   05/03/2018  Aymeric M - Senior Consultant
+// =====================================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace [@DefaultNamespace]
+{
+	/// <summary>
+	/// Metadata definition for Global Optionset
+	/// </summary>
+	public class CrmGlobalOptionSet
+	{
+		[@OptionSetDefinition]
+	}
+}

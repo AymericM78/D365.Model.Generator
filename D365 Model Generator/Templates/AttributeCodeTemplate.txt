@@ -1,0 +1,7 @@
+			
+			/// <summary>
+			/// [@Attribute.Description]
+			/// Type : [@Attribute.AttributeType.Value]
+			/// Validity : [@Attribute.Validity]
+			/// </summary>
+			public const string [@Attribute.SchemaName] = "[@Attribute.LogicalName]";

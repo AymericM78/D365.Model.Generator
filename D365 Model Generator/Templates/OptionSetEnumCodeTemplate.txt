@@ -1,0 +1,5 @@
+			
+				/// <summary>
+				/// [@Option.Description]
+				/// </summary>
+				public const int Option[@Option.Label] = [@Option.Value];

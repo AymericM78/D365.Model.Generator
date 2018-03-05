@@ -1,0 +1,57 @@
+﻿// =====================================================================
+//  This file has been generated with a tool : DO NOT EDIT IT
+//
+//  THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+//  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+//  PARTICULAR PURPOSE.
+//
+//  Copyright (C) Microsoft Corporation.  All rights reserved.
+//   05/03/2018  Aymeric M - Senior Consultant
+// =====================================================================
+
+#region  == Using == 
+using System;
+
+#endregion
+
+namespace [@DefaultNamespace]
+{
+	/// <summary>
+	/// Metadata definition for [@Entity.SchemaName]
+	/// [@EntityDescription]
+    /// 
+    /// Warning : This file has been generated with a tool : DO NOT EDIT IT
+	/// </summary>
+	public class [@EntityCustomName]
+	{
+		public const string EntityLogicalName = "[@Entity.LogicalName]";
+		public const int EntityTypeCode = [@Entity.ObjectTypeCode.Value];
+
+		public static class Fields
+		{
+			#region Custom Attributes
+			[@CustomAttributes]
+			#endregion Custom Attributes
+
+			#region System Attributes
+			[@SystemAttributes]
+			#endregion System Attributes
+		}
+
+		public static class Lookups
+		{
+			[@Lookups]
+		}
+
+		public static class OptionSets
+		{
+			[@OptionSets]
+		}
+		
+		public static class MultiSelectOptionSets
+		{
+			[@MultiSelects]
+		}
+	}
+}
