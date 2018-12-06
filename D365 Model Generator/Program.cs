@@ -16,7 +16,6 @@ namespace D365.Model.Generator
     using Microsoft.Xrm.Tooling.Connector;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -66,7 +65,7 @@ namespace D365.Model.Generator
                 crmConnectionString = args[1];
                 DefaultNamespace = args[2];
                 CrmService = new CrmServiceClient(crmConnectionString);
-                if(!string.IsNullOrEmpty(CrmService.LastCrmError))
+                if (!string.IsNullOrEmpty(CrmService.LastCrmError))
                 {
                     Console.WriteLine($"Connection failed : {CrmService.LastCrmError}");
                     return;
@@ -79,7 +78,7 @@ namespace D365.Model.Generator
                     if (Directory.Exists(customPath))
                     {
                         Directory.Delete(customPath, true);
-                    }                      
+                    }
 
                     var systemPath = Path.Combine(outputPath, "System");
                     if (Directory.Exists(systemPath))
@@ -178,7 +177,8 @@ namespace D365.Model.Generator
                     string entityCustomName = string.Concat("Crm", Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(currentEntity.SchemaName));
                     string path = outputPath;
                     if (currentEntity.IsCustomEntity.HasValue
-                        && currentEntity.IsCustomEntity.Value)
+                        && currentEntity.IsCustomEntity.Value 
+                        && !currentEntity.LogicalName.StartsWith("msdyn_"))
                     {
                         path += @"\Custom\";
                     }
@@ -296,7 +296,7 @@ namespace D365.Model.Generator
             entityClassCode = entityClassCode.Replace("[@OptionSets]", optionSetAttributesCode);
 
             var multiSelectAttributes = currentEntity.Attributes.OrderBy(a => a.SchemaName).ToList();
-            multiSelectAttributes = multiSelectAttributes.Where(a => a.AttributeTypeName.Value == "MultiSelectPicklistType").ToList();
+            multiSelectAttributes = multiSelectAttributes.Where(a => a.AttributeTypeName?.Value == "MultiSelectPicklistType").ToList();
             string multiselectAttributesCode = LoadAttributes(multiSelectAttributes);
             entityClassCode = entityClassCode.Replace("[@MultiSelects]", multiselectAttributesCode);
 
@@ -407,79 +407,88 @@ namespace D365.Model.Generator
             {
                 string attributeCode = string.Empty;
 
-                string displayName = currentAttribute.SchemaName;
-                if (currentAttribute.DisplayName.UserLocalizedLabel != null)
+                try
                 {
-                    displayName = currentAttribute.DisplayName.UserLocalizedLabel.Label;
-                }
+                    var type = currentAttribute.AttributeType.Value;
+                    var typeName = currentAttribute.AttributeTypeName?.Value;
+                    string displayName = currentAttribute.SchemaName;
 
-                string description = displayName;
-                if (currentAttribute.Description.UserLocalizedLabel != null)
-                {
-                    description = currentAttribute.Description.UserLocalizedLabel.Label;
-                }
-
-                if (currentAttribute.AttributeType.Value == AttributeTypeCode.Picklist
-                    || currentAttribute.AttributeType.Value == AttributeTypeCode.State
-                    || currentAttribute.AttributeType.Value == AttributeTypeCode.Status
-                    || currentAttribute.AttributeTypeName.Value == "MultiSelectPicklistType")
-                {
-                    attributeCode = GlobalOptionSetCodeTemplate;
-                }
-                else
-                {
-                    attributeCode = AttributeCodeTemplate;
-                }
-
-                description = Regex.Replace(description, @"\r\n+", " ");
-                attributeCode = attributeCode.Replace("[@Attribute.Description]", description);
-                attributeCode = attributeCode.Replace("[@Attribute.DisplayName]", displayName);
-                attributeCode = attributeCode.Replace("[@Attribute.SchemaName]", currentAttribute.SchemaName);
-                attributeCode = attributeCode.Replace("[@Attribute.LogicalName]", currentAttribute.LogicalName);
-                attributeCode = attributeCode.Replace("[@Attribute.AttributeType.Value]", currentAttribute.AttributeType.Value.ToString());
-
-                string validity = string.Empty;
-                validity += currentAttribute.IsValidForRead.Value ? " Read |" : String.Empty;
-                validity += currentAttribute.IsValidForCreate.Value ? " Create |" : String.Empty;
-                validity += currentAttribute.IsValidForUpdate.Value ? " Update |" : String.Empty;
-                validity += currentAttribute.IsValidForAdvancedFind.Value ? " AdvancedFind |" : String.Empty;
-                if (validity.EndsWith(" |"))
-                {
-                    validity = validity.Remove(validity.LastIndexOf('|'));
-                }
-                attributeCode = attributeCode.Replace("[@Attribute.Validity]", validity);
-
-                if (currentAttribute.AttributeType.Value == AttributeTypeCode.Picklist 
-                    || currentAttribute.AttributeType.Value == AttributeTypeCode.State
-                    || currentAttribute.AttributeType.Value == AttributeTypeCode.Status
-                    || currentAttribute.AttributeTypeName.Value == "MultiSelectPicklistType")
-                {
-                    attributeCode = attributeCode.Replace("[@OptionSet.Description]", description);
-                    attributeCode = attributeCode.Replace("[@OptionSet.DisplayName]", displayName);
-                    attributeCode = attributeCode.Replace("[@OptionSet.SchemaName]", currentAttribute.SchemaName);
-                    attributeCode = attributeCode.Replace("[@OptionSet.LogicalName]", currentAttribute.LogicalName);
-                    attributeCode = attributeCode.Replace("[@OptionSet.OptionSetType.Value]", currentAttribute.AttributeType.Value.ToString());
-
-                    string optionSetEnums = string.Empty;
-                    var optionSetMetadata = (EnumAttributeMetadata)currentAttribute;
-                    int optionCount = 1;
-                    foreach (OptionMetadata option in optionSetMetadata.OptionSet.Options)
+                    if (currentAttribute.DisplayName.UserLocalizedLabel != null)
                     {
-                        var desc = option.Label.UserLocalizedLabel.Label;
-                        var label = optionCount + "_" + ConvertNameAsVariable(desc);
-                        var value = option.Value.Value.ToString(CultureInfo.InvariantCulture);
-
-                        string optionSetEnumCode = OptionSetEnumCodeTemplate;
-                        optionSetEnumCode = optionSetEnumCode.Replace("[@Option.Description]", desc);
-                        optionSetEnumCode = optionSetEnumCode.Replace("[@Option.Label]", label);
-                        optionSetEnumCode = optionSetEnumCode.Replace("[@Option.Value]", value);
-                        optionSetEnums += optionSetEnumCode;
-                        optionCount++;
+                        displayName = currentAttribute.DisplayName.UserLocalizedLabel.Label;
                     }
-                    attributeCode = attributeCode.Replace("[@OptionSet.Values]", optionSetEnums);
-                }
 
-                attributesCode += attributeCode;
+                    string description = displayName;
+                    if (currentAttribute.Description.UserLocalizedLabel != null)
+                    {
+                        description = currentAttribute.Description.UserLocalizedLabel.Label;
+                    }
+
+                    if (type == AttributeTypeCode.Picklist
+                        || type == AttributeTypeCode.State
+                        || type == AttributeTypeCode.Status
+                        || typeName == "MultiSelectPicklistType")
+                    {
+                        attributeCode = GlobalOptionSetCodeTemplate;
+                    }
+                    else
+                    {
+                        attributeCode = AttributeCodeTemplate;
+                    }
+
+                    description = Regex.Replace(description, @"\r\n+", " ");
+                    attributeCode = attributeCode.Replace("[@Attribute.Description]", description);
+                    attributeCode = attributeCode.Replace("[@Attribute.DisplayName]", displayName);
+                    attributeCode = attributeCode.Replace("[@Attribute.SchemaName]", currentAttribute.SchemaName);
+                    attributeCode = attributeCode.Replace("[@Attribute.LogicalName]", currentAttribute.LogicalName);
+                    attributeCode = attributeCode.Replace("[@Attribute.AttributeType.Value]", type.ToString());
+
+                    string validity = string.Empty;
+                    validity += currentAttribute.IsValidForRead.Value ? " Read |" : String.Empty;
+                    validity += (currentAttribute.IsValidForCreate != null && currentAttribute.IsValidForCreate.Value) ? " Create |" : String.Empty;
+                    validity += (currentAttribute.IsValidForUpdate != null && currentAttribute.IsValidForUpdate.Value) ? " Update |" : String.Empty;
+                    validity += (currentAttribute.IsValidForAdvancedFind != null && currentAttribute.IsValidForAdvancedFind.Value) ? " AdvancedFind |" : String.Empty;
+                    if (validity.EndsWith(" |"))
+                    {
+                        validity = validity.Remove(validity.LastIndexOf('|'));
+                    }
+                    attributeCode = attributeCode.Replace("[@Attribute.Validity]", validity);
+
+                    if (type == AttributeTypeCode.Picklist
+                        || type == AttributeTypeCode.State
+                        || type == AttributeTypeCode.Status
+                        || typeName == "MultiSelectPicklistType")
+                    {
+                        attributeCode = attributeCode.Replace("[@OptionSet.Description]", description);
+                        attributeCode = attributeCode.Replace("[@OptionSet.DisplayName]", displayName);
+                        attributeCode = attributeCode.Replace("[@OptionSet.SchemaName]", currentAttribute.SchemaName);
+                        attributeCode = attributeCode.Replace("[@OptionSet.LogicalName]", currentAttribute.LogicalName);
+                        attributeCode = attributeCode.Replace("[@OptionSet.OptionSetType.Value]", type.ToString());
+
+                        string optionSetEnums = string.Empty;
+                        var optionSetMetadata = (EnumAttributeMetadata)currentAttribute;
+                        int optionCount = 1;
+                        foreach (OptionMetadata option in optionSetMetadata.OptionSet.Options)
+                        {
+                            var desc = option.Label.UserLocalizedLabel.Label;
+                            var label = optionCount + "_" + ConvertNameAsVariable(desc);
+                            var value = option.Value.Value.ToString(CultureInfo.InvariantCulture);
+
+                            string optionSetEnumCode = OptionSetEnumCodeTemplate;
+                            optionSetEnumCode = optionSetEnumCode.Replace("[@Option.Description]", desc);
+                            optionSetEnumCode = optionSetEnumCode.Replace("[@Option.Label]", label);
+                            optionSetEnumCode = optionSetEnumCode.Replace("[@Option.Value]", value);
+                            optionSetEnums += optionSetEnumCode;
+                            optionCount++;
+                        }
+                        attributeCode = attributeCode.Replace("[@OptionSet.Values]", optionSetEnums);
+                    }
+                    attributesCode += attributeCode;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Failure occured during attribute processing {currentAttribute.SchemaName} : {ex.Message}");
+                }
             }
             return attributesCode;
         }
@@ -492,7 +501,7 @@ namespace D365.Model.Generator
         private static void LoadGlobalOptionSet()
         {
             RetrieveAllOptionSetsRequest request = new RetrieveAllOptionSetsRequest { RetrieveAsIfPublished = true };
-            RetrieveAllOptionSetsResponse response = (RetrieveAllOptionSetsResponse) CrmService.Execute(request);
+            RetrieveAllOptionSetsResponse response = (RetrieveAllOptionSetsResponse)CrmService.Execute(request);
             var optionSetData = response.OptionSetMetadata;
 
             string content = string.Empty;
@@ -524,7 +533,7 @@ namespace D365.Model.Generator
 
                 if (optionSet.OptionSetType != null)
                 {
-                    if ((OptionSetType)optionSet.OptionSetType == OptionSetType.Picklist)
+                    if (optionSet.OptionSetType == OptionSetType.Picklist)
                     {
                         OptionSetMetadata optionSetMetadata = (OptionSetMetadata)optionSet;
                         int optionCount = 1;
@@ -542,7 +551,7 @@ namespace D365.Model.Generator
                             optionCount++;
                         }
                     }
-                    else if ((OptionSetType)optionSet.OptionSetType == OptionSetType.Boolean)
+                    else if (optionSet.OptionSetType == OptionSetType.Boolean)
                     {
                         BooleanOptionSetMetadata optionSetMetadata = (BooleanOptionSetMetadata)optionSet;
 
