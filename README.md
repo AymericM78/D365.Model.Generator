@@ -1,2 +1,2 @@
 # D365-Model-Generator
-Late bound classes generator for D365 CRM data model
+Simple tool for metadata generation that provide a robust late bound oriented dev
